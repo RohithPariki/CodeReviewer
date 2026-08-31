@@ -1,78 +1,58 @@
-# 🤖 AI Code Reviewer
+# AI Code Reviewer
 
-> Automated pull request code review powered by a multi-agent LangGraph pipeline with a sleek Streamlit Web Interface.
-> Four specialized AI agents analyze your PR in parallel — security, bugs, performance, and style — then an orchestrator synthesizes the findings into inline GitHub comments.
+Automated pull request code review powered by a multi-agent LangGraph pipeline and a Streamlit Web Interface.
 
-[![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://python.org)
-[![LangGraph](https://img.shields.io/badge/LangGraph-0.2+-green.svg)](https://langchain-ai.github.io/langgraph/)
-[![Streamlit](https://img.shields.io/badge/Streamlit-1.30+-red.svg)](https://streamlit.io/)
+This system leverages four specialized AI agents that execute in parallel to analyze pull requests across multiple dimensions: security, bugs, performance, and style. An orchestration layer synthesizes the findings into actionable insights.
 
 ---
 
-## 🎯 What it does
+## Technical Overview
 
-When a PR is provided, **AI Code Reviewer** runs 4 agents **in parallel**:
+When a pull request is submitted for review, the AI Code Reviewer initiates a parallel execution pipeline:
 
-| Agent | Finds |
-|-------|-------|
-| 🔒 **Security** | Hardcoded secrets, SQL injection, XSS, auth bypasses, insecure crypto |
-| 🐛 **Bug Detector** | Null pointer deref, off-by-one errors, unhandled exceptions, resource leaks |
-| ⚡ **Performance** | N+1 queries, blocking async calls, missing indexes, memory leaks |
-| ✨ **Style** | Missing docstrings, magic numbers, overly complex functions, dead code |
+- **Security Analysis**: Scans for hardcoded secrets, SQL injection vectors, cross-site scripting (XSS), authentication bypasses, and insecure cryptography.
+- **Defect Detection**: Identifies potential null pointer dereferences, off-by-one errors, unhandled exceptions, and resource leaks.
+- **Performance Profiling**: Highlights N+1 query patterns, blocking asynchronous operations, missing database indexes, and potential memory leaks.
+- **Style Verification**: Ensures compliance with styling standards, flagging missing docstrings, magic numbers, overly complex functions, and dead code.
 
-An **orchestrator** deduplicates and prioritizes findings. The results are displayed live in the Streamlit web dashboard and can optionally be posted as inline GitHub PR comments.
+The orchestrator deduplicates the findings and ranks them by severity. Results are dynamically rendered in the Streamlit web dashboard and can optionally be posted as inline GitHub PR comments.
 
 ---
 
-## 🏗 Architecture
+## System Architecture
 
-```
-  Pull Request
-       │
-       ▼
-  ┌─────────────┐
-  │  parse_diff  │  ← Splits unified diff into per-file chunks
-  └──────┬───────┘    Skips binary files, lock files
-         │
-   ┌─────┼─────┬─────┐   (parallel fan-out via LangGraph)
-   ▼     ▼     ▼     ▼
- [🔒]  [🐛]  [⚡]  [✨]   ← 4 agents run simultaneously
-   │     │     │     │
-   └─────┴──┬──┴─────┘
-            ▼
-    ┌───────────────┐
-    │  orchestrate  │  ← Deduplicate, rank by severity
-    └───────┬───────┘
-            │
-            ▼
-     Streamlit UI  ← Visualizes findings interactively
-```
+The application is built on a directed acyclic graph (DAG) architecture using LangGraph, allowing for highly concurrent agent execution.
+
+1. **Diff Parsing**: The system splits unified diffs into per-file chunks, safely bypassing binary and lock files.
+2. **Parallel Fan-out**: The parsed chunks are routed to four distinct AI agents simultaneously.
+3. **Synthesis & Orchestration**: Findings from the agents are aggregated, deduplicated, and ranked by a central orchestrator node.
+4. **Presentation Layer**: The Streamlit frontend visualizes the findings interactively.
 
 ---
 
-## 🚀 Quick Start (Web UI)
+## Quick Start
 
-### 1. Install Dependencies
+### 1. Installation
 
-Ensure you have Python 3.11+ installed, then run:
+Ensure you have Python 3.11 or higher installed. Clone the repository and install the dependencies:
 
 ```bash
 pip install -e .
 ```
 
-### 2. Configure Environment
+### 2. Environment Configuration
 
-Create an environment file:
+Copy the example environment configuration:
 
 ```bash
 cp .env.example .env
 ```
 
-Add your API keys to the `.env` file (or provide them dynamically via the Web UI sidebar):
+Configure the necessary API tokens in the `.env` file, or provide them dynamically via the web interface:
 
 ```env
-ANTHROPIC_API_KEY=your_api_key_here
-GITHUB_TOKEN=your_github_token_here
+ANTHROPIC_API_KEY=your_anthropic_api_key
+GITHUB_TOKEN=your_github_token
 ```
 
 ### 3. Launch the Application
@@ -83,23 +63,23 @@ Start the Streamlit dashboard:
 streamlit run app.py
 ```
 
-Open your browser to `http://localhost:8501`, enter a target repository and PR number, and watch the agents analyze the code in real time!
+Access the interface at `http://localhost:8501`. Enter the target repository (e.g., `owner/repo`) and the pull request number to initiate the review process.
 
 ---
 
-## ⚙️ Configuration Variables
+## Configuration Variables
 
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `ANTHROPIC_API_KEY` | required | Anthropic API key |
-| `ANTHROPIC_MODEL` | `claude-haiku-20240307` | Model to use (haiku = cost-efficient) |
-| `GITHUB_TOKEN` | required | GitHub token with `repo` + `pull_requests` scope |
+| Variable | Requirement | Description |
+|----------|-------------|-------------|
+| `ANTHROPIC_API_KEY` | Required | Authentication token for Anthropic Claude. |
+| `ANTHROPIC_MODEL` | Optional | Specifies the model to use (default: `claude-haiku-20240307`). |
+| `GITHUB_TOKEN` | Required | GitHub token with `repo` and `pull_requests` scope. |
 
 ---
 
-## 🛠 Built With
+## Technology Stack
 
-- **[Streamlit](https://streamlit.io/)** — Web interface
-- **[LangGraph](https://langchain-ai.github.io/langgraph/)** — parallel agent orchestration
-- **[LangChain Anthropic](https://python.langchain.com/docs/integrations/chat/anthropic/)** — Claude integration
-- **[PyGitHub](https://pygithub.readthedocs.io/)** — GitHub API
+- **Streamlit**: Interactive web interface.
+- **LangGraph**: Parallel agent orchestration.
+- **LangChain Anthropic**: Claude LLM integration.
+- **PyGitHub**: GitHub API communication layer.
